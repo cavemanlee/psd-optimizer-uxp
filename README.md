@@ -1,7 +1,7 @@
 # PSD Optimizer
 
 PSD Optimizer 是一个面向 Adobe Photoshop 25.0+ 的 UXP 清理插件，可在 Apple Silicon 原生模式运行，不需要让 Photoshop 使用 Rosetta。
-尽管现在有很多新工具,但Photoshop依然是我多年的主力工具之一，对 PSD 文件有点洁癖，尤其在图层很多、效果很复杂的时候，文件整理就很头大。随着 Photoshop 更新了插件架构，老插件只能通过 Rosetta 兼容模式运行的 Photoshop 才能正常运行，而我不想为了一些小功能就放弃 Photoshop 的原生运行模式。所以我借助 ChatGPT 做了一个专注于 PSD 清理、原生支持新架构的小插件。功能设计上也参考了一些老的插件工具。
+尽管现在有很多新的设计工具，但 Photoshop 依然有很多时候很难取代，对 PSD 文件有点洁癖，在图层很多效果多的时候，文件整理就很头大。随着 Photoshop 更新了插件架构，老插件只能通过 Rosetta 兼容模式运行的 Photoshop 才能正常运行，而我不想为了一些小功能就放弃 Photoshop 的原生运行模式。所以我借助 ChatGPT 做了一个专注于 PSD 清理、原生支持新架构的小插件。功能设计上也参考了一些老的插件工具。
 
 <img width="504" height="465" alt="image" src="https://github.com/user-attachments/assets/0c200b07-8d79-4cd1-beb5-503e2825c56d" />
 
