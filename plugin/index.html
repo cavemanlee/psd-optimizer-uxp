@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PSD Optimizer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="panel">
+      <header class="panel-header">
+        <h1 id="panelTitle">Optimization Options</h1>
+        <span id="helpButton" class="icon-action help-button" role="button"
+          tabindex="0" aria-label="About optimization options">
+          <img class="help-symbol" src="icons/ui/help-gray.png" alt="" />
+        </span>
+        <span id="selectedCount" class="visually-hidden">1 option</span>
+      </header>
+
+      <section class="option-grid" aria-label="Optimization options">
+        <label class="option-card is-selected" for="deleteMetaData">
+          <input id="deleteMetaData" type="checkbox" checked />
+          <span class="icon-box">
+            <img class="option-icon icon-neutral" src="icons/ui/metadata-gray.png" alt="" />
+            <img class="option-icon icon-inverse" src="icons/ui/metadata-white.png" alt="" />
+          </span>
+          <span id="metadataName" class="option-name">Metadata</span>
+        </label>
+
+        <label class="option-card" for="deleteEmptyLayer">
+          <input id="deleteEmptyLayer" type="checkbox" />
+          <span class="icon-box">
+            <img class="option-icon icon-neutral" src="icons/ui/empty-gray.png" alt="" />
+            <img class="option-icon icon-inverse" src="icons/ui/empty-white.png" alt="" />
+          </span>
+          <span id="emptyLayersName" class="option-name">Empty Layers</span>
+        </label>
+
+        <label class="option-card" for="deleteHiddenStyle">
+          <input id="deleteHiddenStyle" type="checkbox" />
+          <span class="icon-box">
+            <img class="option-icon icon-neutral" src="icons/ui/style-gray.png" alt="" />
+            <img class="option-icon icon-inverse" src="icons/ui/style-white.png" alt="" />
+          </span>
+          <span id="layerStylesName" class="option-name">Layer Styles</span>
+        </label>
+      </section>
+
+      <section class="save-row" aria-label="Save behavior">
+        <label class="overwrite-label">
+          <input id="overrideDoc" type="checkbox" />
+          <span class="square-check" aria-hidden="true">
+            <img class="check-mark" src="icons/ui/check-white.png" alt="" />
+          </span>
+          <span id="overwriteLabel">Overwrite Current Document</span>
+        </label>
+      </section>
+
+      <section class="actions" aria-label="Optimization actions">
+        <span id="cleanSelected" class="action-button outline" role="button"
+          tabindex="0">Optimize Selection</span>
+        <span id="cleanDocument" class="action-button primary" role="button"
+          tabindex="0">Optimize Document</span>
+      </section>
+
+      <section id="status" class="status" data-state="idle" aria-live="polite">
+        <strong id="statusTitle">Ready</strong>
+        <p id="statusDetail">Open a PSD, PSB, or PNG file to begin.</p>
+        <p id="statusSize" class="status-size"></p>
+      </section>
+
+      <section id="helpDialog" class="help-overlay" aria-hidden="true">
+        <div class="help-sheet">
+          <div class="help-title-row">
+            <h2 id="helpTitle">Optimization Options</h2>
+            <span id="helpCloseButton" class="icon-action dialog-close"
+              role="button" tabindex="0" aria-label="Close">
+              <img src="icons/ui/close-gray.png" alt="" />
+            </span>
+          </div>
+          <div class="language-card">
+            <div class="language-copy">
+              <span id="languageLabel" class="language-label">Interface Language</span>
+              <span id="languageHint" class="language-hint">Choose the display language</span>
+            </div>
+            <span id="languageToggle" class="language-toggle" role="switch"
+              aria-checked="false" tabindex="0" aria-label="Switch interface language">
+              <span id="languageEnglish" class="language-choice is-active">English</span>
+              <span id="languageChinese" class="language-choice">中文</span>
+            </span>
+          </div>
+          <ul class="help-list">
+            <li>
+              <img class="help-icon" src="icons/ui/metadata-blue.png" alt="" />
+              <span id="helpMetadata">Remove document metadata</span>
+            </li>
+            <li>
+              <img class="help-icon" src="icons/ui/empty-blue.png" alt="" />
+              <span id="helpEmptyLayers">Remove empty layers</span>
+            </li>
+            <li>
+              <img class="help-icon" src="icons/ui/style-blue.png" alt="" />
+              <span id="helpLayerStyles">Remove disabled layer styles</span>
+            </li>
+          </ul>
+          <p id="helpNote" class="help-note">Overwrite off creates a “filename_fix” copy; existing copies advance to “_fix_2”. PSD and PSB keep their format, while other files save as PSD. Enable overwrite only to replace the current file.</p>
+          <footer class="help-footer">
+            <span>PSD Optimizer · v1.7.5</span>
+            <span>© 2026 CAVEMAN</span>
+          </footer>
+        </div>
+      </section>
+    </main>
+    <script src="index.js"></script>
+  </body>
+</html>

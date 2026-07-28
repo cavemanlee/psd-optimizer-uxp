@@ -1,0 +1,13 @@
+{
+  "name": "psd-optimizer-uxp",
+  "version": "1.7.5",
+  "private": true,
+  "description": "Source and packaging tools for the PSD Optimizer Photoshop UXP plugin.",
+  "scripts": {
+    "render:icons": "node scripts/render-panel-icons.cjs",
+    "test:ui": "node tests/verify-ui-behavior.cjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
+  }
+}

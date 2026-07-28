@@ -1,0 +1,125 @@
+#!/bin/sh
+set -eu
+
+PLUGIN_ID="caveman.optimizer.uxp"
+PLUGIN_VERSION="1.7.5"
+PLUGIN_NAME="PSD Optimizer"
+HOST_MIN_VERSION="25.0.0"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && /bin/pwd)
+SOURCE_ARCHIVE="$SCRIPT_DIR/payload/PSD-Optimizer.zip"
+REGISTRY_HELPER="$SCRIPT_DIR/register_plugin.rb"
+
+CONSOLE_USER=$(/usr/bin/stat -f '%Su' /dev/console)
+case "$CONSOLE_USER" in
+  ""|root|loginwindow)
+    echo "PSD Optimizer: no signed-in desktop user was found." >&2
+    exit 1
+    ;;
+esac
+
+USER_HOME=$(/usr/bin/dscl . -read "/Users/$CONSOLE_USER" NFSHomeDirectory | /usr/bin/sed 's/^NFSHomeDirectory: //')
+case "$USER_HOME" in
+  /Users/*) ;;
+  *)
+    echo "PSD Optimizer: unsupported user home: $USER_HOME" >&2
+    exit 1
+    ;;
+esac
+
+USER_GROUP=$(/usr/bin/id -gn "$CONSOLE_USER")
+PLUGIN_PARENT="$USER_HOME/Library/Application Support/Adobe/UXP/Plugins/External"
+PLUGIN_TARGET="$PLUGIN_PARENT/$PLUGIN_ID"
+PLUGIN_STAGE="$PLUGIN_PARENT/.${PLUGIN_ID}.installing.$$"
+PLUGIN_BACKUP="$PLUGIN_PARENT/.${PLUGIN_ID}.backup.$$"
+REGISTRY_PARENT="$USER_HOME/Library/Application Support/Adobe/UXP/PluginsInfo/v1"
+REGISTRY_PATH="$REGISTRY_PARENT/PS.json"
+REGISTRY_BACKUP="$REGISTRY_PARENT/.PS.json.psd-optimizer.backup.$$"
+REGISTRY_PLUGIN_PATH="\$localPlugins/External/$PLUGIN_ID"
+
+if [ ! -f "$SOURCE_ARCHIVE" ] ||
+  [ ! -f "$REGISTRY_HELPER" ] ||
+  ! /usr/bin/unzip -tqq "$SOURCE_ARCHIVE"; then
+  echo "PSD Optimizer: the installer payload is incomplete or damaged." >&2
+  exit 1
+fi
+
+/usr/bin/install -d -m 755 -o "$CONSOLE_USER" -g "$USER_GROUP" "$PLUGIN_PARENT"
+/usr/bin/install -d -m 755 -o "$CONSOLE_USER" -g "$USER_GROUP" "$PLUGIN_STAGE"
+/usr/bin/install -d -m 755 -o "$CONSOLE_USER" -g "$USER_GROUP" "$REGISTRY_PARENT"
+
+if ! /usr/bin/unzip -qq "$SOURCE_ARCHIVE" -d "$PLUGIN_STAGE"; then
+  /bin/rm -rf -- "$PLUGIN_STAGE"
+  echo "PSD Optimizer: the installer payload could not be extracted." >&2
+  exit 1
+fi
+
+if [ ! -f "$PLUGIN_STAGE/manifest.json" ] ||
+  ! /usr/bin/grep -q '"id"[[:space:]]*:[[:space:]]*"caveman.optimizer.uxp"' "$PLUGIN_STAGE/manifest.json" ||
+  ! /usr/bin/grep -q '"version"[[:space:]]*:[[:space:]]*"1.7.5"' "$PLUGIN_STAGE/manifest.json" ||
+  [ ! -s "$PLUGIN_STAGE/index.html" ] ||
+  [ ! -s "$PLUGIN_STAGE/index.js" ] ||
+  [ ! -s "$PLUGIN_STAGE/styles.css" ] ||
+  [ ! -s "$PLUGIN_STAGE/icons/ui/check-white.png" ] ||
+  [ ! -s "$PLUGIN_STAGE/icons/ui/help-gray.png" ]; then
+  /bin/rm -rf -- "$PLUGIN_STAGE"
+  echo "PSD Optimizer: staged plugin verification failed." >&2
+  exit 1
+fi
+
+/usr/sbin/chown -R "$CONSOLE_USER:$USER_GROUP" "$PLUGIN_STAGE"
+/bin/chmod -R u+rwX,go+rX "$PLUGIN_STAGE"
+
+HAD_BACKUP=0
+if [ -e "$PLUGIN_TARGET" ]; then
+  /bin/mv "$PLUGIN_TARGET" "$PLUGIN_BACKUP"
+  HAD_BACKUP=1
+fi
+
+if ! /bin/mv "$PLUGIN_STAGE" "$PLUGIN_TARGET"; then
+  if [ "$HAD_BACKUP" -eq 1 ] && [ ! -e "$PLUGIN_TARGET" ]; then
+    /bin/mv "$PLUGIN_BACKUP" "$PLUGIN_TARGET"
+  fi
+  /bin/rm -rf -- "$PLUGIN_STAGE"
+  echo "PSD Optimizer: plugin files could not be installed." >&2
+  exit 1
+fi
+
+HAD_REGISTRY=0
+if [ -f "$REGISTRY_PATH" ]; then
+  /usr/bin/ditto "$REGISTRY_PATH" "$REGISTRY_BACKUP"
+  HAD_REGISTRY=1
+fi
+
+if ! /usr/bin/ruby "$REGISTRY_HELPER" \
+  "$REGISTRY_PATH" \
+  "$PLUGIN_ID" \
+  "$PLUGIN_NAME" \
+  "$PLUGIN_VERSION" \
+  "$HOST_MIN_VERSION" \
+  "$REGISTRY_PLUGIN_PATH"; then
+  /bin/rm -rf -- "$PLUGIN_TARGET"
+  if [ "$HAD_BACKUP" -eq 1 ] && [ ! -e "$PLUGIN_TARGET" ]; then
+    /bin/mv "$PLUGIN_BACKUP" "$PLUGIN_TARGET"
+  fi
+  if [ "$HAD_REGISTRY" -eq 1 ]; then
+    /bin/mv -f "$REGISTRY_BACKUP" "$REGISTRY_PATH"
+  elif [ -f "$REGISTRY_PATH" ]; then
+    /bin/rm -f -- "$REGISTRY_PATH"
+  fi
+  echo "PSD Optimizer: registration failed; the previous version was restored." >&2
+  exit 1
+fi
+
+/usr/sbin/chown "$CONSOLE_USER:$USER_GROUP" "$REGISTRY_PATH"
+/bin/chmod 644 "$REGISTRY_PATH"
+
+if [ "$HAD_BACKUP" -eq 1 ]; then
+  /bin/rm -rf -- "$PLUGIN_BACKUP"
+fi
+if [ "$HAD_REGISTRY" -eq 1 ]; then
+  /bin/rm -f -- "$REGISTRY_BACKUP"
+fi
+
+echo "PSD Optimizer $PLUGIN_VERSION installed for $CONSOLE_USER."
+echo "Restart Photoshop, then open Plugins > PSD Optimizer."
+exit 0

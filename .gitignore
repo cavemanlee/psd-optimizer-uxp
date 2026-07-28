@@ -1,0 +1,17 @@
+.DS_Store
+work/
+build/
+dist/
+node_modules/
+*.log
+
+# Generated Windows resources
+resource_windows_amd64.syso
+build-assets/*.res
+
+# Generated macOS installer payload
+packaging/macos/scripts/payload/
+
+# Local visual verification output
+build-assets/ui-*.png
+design-previews/
