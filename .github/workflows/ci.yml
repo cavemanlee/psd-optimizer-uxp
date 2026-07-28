@@ -24,6 +24,9 @@ jobs:
       - name: Validate manifest
         run: python3 -m json.tool plugin/manifest.json >/dev/null
 
+      - name: Validate distributed license
+        run: cmp LICENSE plugin/LICENSE
+
       - name: Test Windows installer transactions
         run: go test -count=1 ./...
 

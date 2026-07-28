@@ -22,6 +22,7 @@ fi
 go test ./...
 "$node_bin" tests/verify-ui-behavior.cjs
 python3 -m json.tool plugin/manifest.json >/dev/null
+cmp LICENSE plugin/LICENSE
 
 source_archive="$build_stage/PSD-Optimizer.zip"
 (
