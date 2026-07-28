@@ -1,0 +1,102 @@
+PSD Optimizer Source-Available License 1.0
+
+Copyright (c) 2026 CAVEMAN
+
+This license governs the PSD Optimizer software, including its source code,
+assets, documentation, installers, and official release builds (the
+"Software").
+
+1. Acceptance
+
+By exercising any permission granted by this license, you agree to its terms.
+If you do not agree, you receive no rights under this license.
+
+2. Permitted Use of the Plugin
+
+You may install and run an unmodified official release of the Software, or a
+faithful unmodified build made from this source code, for personal,
+educational, charitable, internal business, or professional design work.
+
+You may use the Software to create PSD files, images, artwork, design
+deliverables, and other content for yourself or for clients, whether the work
+is paid or unpaid. Those outputs belong to their creators and are not governed
+by this license.
+
+3. Source Code Permissions
+
+You may:
+
+a. view, download, and copy the source code for study, security review,
+   evaluation, backup, and other noncommercial purposes;
+b. modify the source code for noncommercial purposes; and
+c. share noncommercial copies or forks of the source code, with or without
+   modifications, provided that you:
+   i. include this license and all copyright notices;
+   ii. clearly identify your changes;
+   iii. do not imply endorsement by CAVEMAN; and
+   iv. license the distributed copy under these same terms without adding
+       conflicting restrictions.
+
+4. Commercial Exploitation Prohibited
+
+Without a separate written commercial license from CAVEMAN, you may not use,
+copy, modify, distribute, sublicense, or otherwise exploit the Software or a
+derivative work for a commercial purpose.
+
+Prohibited commercial exploitation includes, without limitation:
+
+a. selling, licensing, renting, or charging for the Software or a derivative;
+b. rebranding, repackaging, cloning, or publishing it as your own product;
+c. including any substantial portion in a paid product, plugin, service,
+   subscription, bundle, or marketplace listing;
+d. distributing it in exchange for money, advertising value, sponsorship,
+   services, or other commercial benefit; or
+e. offering paid hosting, paid access, or a paid service whose value derives
+   substantially from the Software.
+
+For clarity, using the unmodified plugin to produce paid design work under
+Section 2 is permitted and is not commercial exploitation of the Software.
+
+5. Commercial Licenses
+
+CAVEMAN may grant separate commercial licenses on different terms. Requests
+may be made through the official PSD Optimizer repository.
+
+6. No Trademark License
+
+This license does not grant permission to use the names "PSD Optimizer" or
+"CAVEMAN", or any associated logo or branding, except as reasonably necessary
+to preserve copyright and attribution notices or to describe the origin of an
+unmodified copy.
+
+7. No Patent Rights
+
+No patent license is granted under these terms.
+
+8. Termination
+
+Your rights under this license terminate automatically if you violate its
+terms. If this is your first violation and you correct it within 30 days after
+receiving written notice, your rights are reinstated automatically as of the
+date the violation is corrected. Repeated or uncured violations terminate
+your rights permanently unless CAVEMAN agrees otherwise in writing.
+
+9. Disclaimer of Warranty
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED "AS IS",
+WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+10. Limitation of Liability
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, CAVEMAN WILL NOT BE LIABLE FOR ANY
+CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
+THE SOFTWARE OR ITS USE.
+
+11. Other Rights
+
+This license does not limit rights that applicable law grants independently,
+such as fair use. No rights are granted except as expressly stated.
+
+This is a source-available license, not an Open Source Initiative approved
+open-source license.
