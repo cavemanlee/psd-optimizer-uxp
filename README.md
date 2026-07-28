@@ -58,20 +58,6 @@ node tests/verify-ui-behavior.cjs
 python3 -m json.tool plugin/manifest.json >/dev/null
 ```
 
-## 重新生成折叠栏图标
-
-图标源文件位于：
-
-- `plugin/icons/panel-broom-dark.svg`
-- `plugin/icons/panel-broom-light.svg`
-
-安装依赖并生成 23×23 与 46×46 PNG：
-
-```bash
-npm install
-npm run render:icons
-```
-
 ## 构建发布文件
 
 ```bash
