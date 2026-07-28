@@ -4,8 +4,6 @@ PSD Optimizer 是一个面向 Adobe Photoshop 25.0+ 的 UXP 清理插件，可�
 
 当前版本：**1.7.5**
 
-插件 ID：`caveman.optimizer.uxp`
-
 ## 功能
 
 - 清理文档 XMP 元数据
