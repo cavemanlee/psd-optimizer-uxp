@@ -87,6 +87,17 @@ npm run render:icons
 
 ## 来源说明
 
-本项目是根据旧插件可观察行为进行的独立 UXP 重写，不包含旧 CEP 插件的源码、账户或授权逻辑。
+本项目为独立开发的 Photoshop UXP 插件，不包含第三方插件源码、账户或授权逻辑。
 
-Copyright © 2026 CAVEMAN. All rights reserved.
+## 许可证
+
+本项目采用自定义的 [PSD Optimizer Source-Available License 1.0](LICENSE)：
+
+- 可以查看、学习、审查及非商业修改源码。
+- 可以在保留许可证和版权声明的前提下非商业复制或 Fork。
+- 可以使用未经修改的插件完成收费设计项目，设计输出不受本许可证限制。
+- 未经 CAVEMAN 书面授权，不得商业复制、改名、重新打包、销售或将源码及衍生插件用于商业产品。
+
+这是一份“源码公开”许可证，不是 OSI 认可的开源许可证。商业授权可通过本仓库联系。
+
+Copyright © 2026 CAVEMAN.
