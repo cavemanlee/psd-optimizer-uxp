@@ -2,7 +2,7 @@
 set -eu
 
 PLUGIN_ID="caveman.optimizer.uxp"
-PLUGIN_VERSION="1.7.5"
+PLUGIN_VERSION="1.7.6"
 PLUGIN_NAME="PSD Optimizer"
 HOST_MIN_VERSION="25.0.0"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && /bin/pwd)
@@ -55,7 +55,7 @@ fi
 
 if [ ! -f "$PLUGIN_STAGE/manifest.json" ] ||
   ! /usr/bin/grep -q '"id"[[:space:]]*:[[:space:]]*"caveman.optimizer.uxp"' "$PLUGIN_STAGE/manifest.json" ||
-  ! /usr/bin/grep -q '"version"[[:space:]]*:[[:space:]]*"1.7.5"' "$PLUGIN_STAGE/manifest.json" ||
+  ! /usr/bin/grep -q '"version"[[:space:]]*:[[:space:]]*"1.7.6"' "$PLUGIN_STAGE/manifest.json" ||
   [ ! -s "$PLUGIN_STAGE/index.html" ] ||
   [ ! -s "$PLUGIN_STAGE/index.js" ] ||
   [ ! -s "$PLUGIN_STAGE/styles.css" ] ||

@@ -1,7 +1,8 @@
 const photoshop = require("photoshop");
 const { app, action, core, constants } = photoshop;
-const { storage, xmp } = require("uxp");
+const { storage, xmp, entrypoints, host } = require("uxp");
 const localFileSystem = storage.localFileSystem;
+const PANEL_ENTRYPOINT_ID = "psdCleanerPanel";
 
 const EMPTY_XMP = [
   "<?xpacket begin=\"\uFEFF\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>",
@@ -152,6 +153,8 @@ const STRINGS = {
 let busy = false;
 let currentLanguage = "en";
 let statusRenderer = null;
+let panelVisible = false;
+let uxpCommandListenerAttached = false;
 try {
   const storedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (storedLanguage === "zh" || storedLanguage === "en") {
@@ -164,6 +167,68 @@ try {
 function t(key, ...args) {
   const value = STRINGS[currentLanguage][key];
   return typeof value === "function" ? value(...args) : value;
+}
+
+function setPanelVisibility(value) {
+  panelVisible = Boolean(value);
+  if (panelVisible) {
+    updateOptionUI();
+    renderLocalizedStatus();
+  } else {
+    closeHelpDialog();
+  }
+}
+
+function handleUxpCommand(event) {
+  const commandId = event && event.commandId;
+  if (commandId === "uxpshowpanel") {
+    setPanelVisibility(true);
+  } else if (commandId === "uxphidepanel") {
+    setPanelVisibility(false);
+  }
+}
+
+function attachUxpCommandListener() {
+  if (uxpCommandListenerAttached) return;
+  document.addEventListener("uxpcommand", handleUxpCommand);
+  uxpCommandListenerAttached = true;
+}
+
+function detachUxpCommandListener() {
+  if (!uxpCommandListenerAttached) return;
+  document.removeEventListener("uxpcommand", handleUxpCommand);
+  uxpCommandListenerAttached = false;
+}
+
+function initializePanelLifecycle() {
+  attachUxpCommandListener();
+  entrypoints.setup({
+    plugin: {
+      create() {
+        attachUxpCommandListener();
+      },
+      destroy() {
+        detachUxpCommandListener();
+        setPanelVisibility(false);
+      }
+    },
+    panels: {
+      [PANEL_ENTRYPOINT_ID]: {
+        create() {
+          attachUxpCommandListener();
+        },
+        show() {
+          setPanelVisibility(true);
+        },
+        hide() {
+          setPanelVisibility(false);
+        },
+        destroy() {
+          setPanelVisibility(false);
+        }
+      }
+    }
+  });
 }
 
 function createStats() {
@@ -249,12 +314,15 @@ function updateOptionUI() {
 
 function flattenLayers(layers) {
   const result = [];
-  const queue = Array.from(layers || []);
-  while (queue.length) {
-    const layer = queue.shift();
+  const stack = Array.from(layers || []).reverse();
+  while (stack.length) {
+    const layer = stack.pop();
     result.push(layer);
     if (layer.layers && layer.layers.length) {
-      queue.unshift(...Array.from(layer.layers));
+      const children = Array.from(layer.layers);
+      for (let index = children.length - 1; index >= 0; index -= 1) {
+        stack.push(children[index]);
+      }
     }
   }
   return result;
@@ -684,7 +752,39 @@ async function removeHiddenStyle(layer) {
   return removed;
 }
 
+function throwIfCancelled(executionContext) {
+  if (executionContext && executionContext.isCancelled) {
+    throw new Error(t("cancelled"));
+  }
+}
+
+function rethrowIfCancelled(error, executionContext) {
+  if (executionContext && executionContext.isCancelled) {
+    throw error;
+  }
+}
+
+function hostVersionAtLeast(requiredMajor, requiredMinor) {
+  const [majorText = "", minorText = ""] = String(
+    host && host.version ? host.version : ""
+  ).split(".");
+  const major = Number.parseInt(majorText, 10);
+  const minor = Number.parseInt(minorText, 10);
+  if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+  return major > requiredMajor
+    || (major === requiredMajor && minor >= requiredMinor);
+}
+
+function modalExecutionOptions() {
+  const options = { commandName: "PSD Optimizer" };
+  if (hostVersionAtLeast(25, 10)) {
+    options.timeOut = 10000;
+  }
+  return options;
+}
+
 async function cleanDocument(doc, options, stats, executionContext) {
+  throwIfCancelled(executionContext);
   await setActiveDocument(doc);
   stats.documents += 1;
   const requestedTargetIds = options.cleanType === "selected"
@@ -693,6 +793,7 @@ async function cleanDocument(doc, options, stats, executionContext) {
 
   if (options.deleteEmptyLayer) {
     try {
+      throwIfCancelled(executionContext);
       const layerIdsBefore = new Set(
         flattenLayers(doc.layers).map((layer) => layer.id)
       );
@@ -704,11 +805,13 @@ async function cleanDocument(doc, options, stats, executionContext) {
         (layerId) => !layerIdsAfter.has(layerId)
       ).length;
     } catch (error) {
+      rethrowIfCancelled(error, executionContext);
       stats.warnings.push(t("emptyUnavailable", error.message || error));
     }
   }
 
   if (options.deleteHiddenStyle) {
+    throwIfCancelled(executionContext);
     const allLayers = flattenLayers(doc.layers);
     const targets = requestedTargetIds
       ? allLayers.filter((layer) => requestedTargetIds.has(layer.id))
@@ -729,6 +832,7 @@ async function cleanDocument(doc, options, stats, executionContext) {
             await unlockLayer(layer);
             lockedLayers.push(layer);
           } catch (error) {
+            rethrowIfCancelled(error, executionContext);
             stats.warnings.push(t("lockedUnchanged", layer.name));
           }
         }
@@ -736,12 +840,13 @@ async function cleanDocument(doc, options, stats, executionContext) {
         try {
           stats.hiddenStyles += await removeHiddenStyle(layer);
         } catch (error) {
+          rethrowIfCancelled(error, executionContext);
           stats.warnings.push(t("styleLayerFailed", layer.name, error.message || error));
         }
 
         if (index % 10 === 0) {
           executionContext.reportProgress({
-            value: targets.length ? index / targets.length : 1,
+            value: targets.length ? (index + 1) / targets.length : 1,
             commandName: t("processing", doc.title || doc.name)
           });
         }
@@ -761,12 +866,14 @@ async function cleanDocument(doc, options, stats, executionContext) {
     }
   }
 
+  throwIfCancelled(executionContext);
   if (options.deleteMetaData) {
     try {
       await setActiveDocument(doc);
       await clearDocumentMetadata(doc);
       stats.metadata += 1;
     } catch (error) {
+      rethrowIfCancelled(error, executionContext);
       stats.warnings.push(t("metadataFailed", error.message || error));
     }
   }
@@ -831,28 +938,22 @@ async function cleanCurrent(cleanType) {
 
   let copyEntry = null;
   const originalDoc = app.activeDocument;
-  const originalEntry = await entryFromDocument(originalDoc);
-  if (!options.overrideDoc) {
-    try {
-      copyEntry = await makeCopyEntry(originalDoc, originalEntry);
-    } catch (error) {
-      setLocalizedStatus(
-        "error",
-        "optimizationFailed",
-        () => error.message || String(error)
-      );
-      return;
-    }
-    if (!copyEntry) return;
-  }
-
-  const stats = createStats();
-  stats.files = 1;
-  if (originalEntry) stats.bytesBefore = await safeMetadataSize(originalEntry);
-
   setBusy(true);
   setLocalizedStatus("busy", "optimizingTitle", "optimizingDetail");
   try {
+    const originalEntry = await entryFromDocument(originalDoc);
+    if (!options.overrideDoc) {
+      copyEntry = await makeCopyEntry(originalDoc, originalEntry);
+      if (!copyEntry) {
+        setLocalizedStatus("idle", "readyTitle", "readyDetail");
+        return;
+      }
+    }
+
+    const stats = createStats();
+    stats.files = 1;
+    if (originalEntry) stats.bytesBefore = await safeMetadataSize(originalEntry);
+
     let cleanedEntry = originalEntry;
     await core.executeAsModal(async (executionContext) => {
       let workingDoc = originalDoc;
@@ -874,6 +975,7 @@ async function cleanCurrent(cleanType) {
             await cleanDocument(workingDoc, options, stats, executionContext);
           }
         );
+        throwIfCancelled(executionContext);
         await saveDocument(workingDoc, options.deleteMetaData);
 
         if (registeredForAutoClose) {
@@ -891,20 +993,22 @@ async function cleanCurrent(cleanType) {
             // Auto-close remains a fallback if Photoshop is cancelling the modal scope.
           }
         }
-        await setActiveDocument(originalDoc);
+        try {
+          await setActiveDocument(originalDoc);
+        } catch (_) {
+          // Preserve the original modal or cancellation error.
+        }
         throw error;
       }
-    }, {
-      commandName: "PSD Optimizer",
-      timeOut: 10000
-    });
+    }, modalExecutionOptions());
 
     if (cleanedEntry) stats.bytesAfter = await safeMetadataSize(cleanedEntry);
+    const savedCopyName = copyEntry ? copyEntry.name : null;
     setLocalizedStatus(
       stats.errors.length ? "error" : "success",
       stats.errors.length ? "completedWithErrors" : "optimizationComplete",
-      () => `${summarize(stats)} · ${copyEntry
-        ? t("savedAs", copyEntry.name)
+      () => `${summarize(stats)} · ${savedCopyName
+        ? t("savedAs", savedCopyName)
         : t("overwritten")}`,
       () => formatSizeChange(stats)
     );
@@ -1019,5 +1123,6 @@ bindControlAction("helpButton", openHelpDialog);
 bindControlAction("helpCloseButton", closeHelpDialog);
 bindControlAction("languageToggle", toggleLanguage);
 
+initializePanelLifecycle();
 setLocalizedStatus("idle", "readyTitle", "readyDetail");
 applyLanguage();

@@ -2,7 +2,7 @@
 
 PSD Optimizer 是一个面向 Adobe Photoshop 25.0+ 的 UXP 清理插件，可在 Apple Silicon 原生模式运行，不需要让 Photoshop 使用 Rosetta。
 
-当前版本：**1.7.5**
+当前版本：**1.7.6**
 
 插件 ID：`caveman.optimizer.uxp`
 

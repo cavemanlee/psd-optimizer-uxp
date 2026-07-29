@@ -2,7 +2,7 @@
   "manifestVersion": 5,
   "id": "caveman.optimizer.uxp",
   "name": "PSD Optimizer",
-  "version": "1.7.5",
+  "version": "1.7.6",
   "main": "index.html",
   "host": {
     "app": "PS",

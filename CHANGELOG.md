@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.6
+
+- 补齐面板 `create`、`show`、`hide`、`destroy` 生命周期，并增加 Photoshop `uxpcommand` 显示状态兜底。
+- 防止快速重复点击并发启动多个优化任务。
+- 用户取消 Photoshop 模态操作时立即停止并回滚，不再继续保存。
+- 将图层遍历改为线性复杂度，降低大型 PSD 的卡顿和临时内存占用。
+- 根据 Photoshop 版本启用 `executeAsModal.timeOut`，兼容 Photoshop 25.0–25.9。
+
 ## 1.7.5
 
 - 将 Photoshop 折叠栏入口更新为扫把与三颗星芒图标。
