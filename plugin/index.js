@@ -1,8 +1,21 @@
 const photoshop = require("photoshop");
 const { app, action, core, constants } = photoshop;
-const { storage, xmp, entrypoints, host } = require("uxp");
+const {
+  storage,
+  xmp,
+  entrypoints,
+  host,
+  versions,
+  shell
+} = require("uxp");
 const localFileSystem = storage.localFileSystem;
 const PANEL_ENTRYPOINT_ID = "psdCleanerPanel";
+const UPDATE_API_URL =
+  "https://api.github.com/repos/cavemanlee/psd-optimizer-uxp/releases/latest";
+const UPDATE_DOWNLOAD_URL =
+  "https://github.com/cavemanlee/psd-optimizer-uxp/releases/latest";
+const UPDATE_TIMEOUT_MS = 8000;
+const UPDATE_CACHE_MS = 60000;
 
 const EMPTY_XMP = [
   "<?xpacket begin=\"\uFEFF\" id=\"W5M0MpCehiHzreSzNTczkc9d\"?>",
@@ -36,7 +49,7 @@ const STRINGS = {
     helpMetadata: "Remove document metadata",
     helpEmptyLayers: "Remove empty layers",
     helpLayerStyles: "Remove disabled layer styles",
-    helpNote: "Overwrite off creates a “filename_fix” copy; existing copies advance to “_fix_2”. PSD and PSB keep their format, while other files save as PSD. Enable overwrite only to replace the current file.",
+    helpNote: "Overwrite off creates a “filename_fix” copy; existing copies advance to “_fix_2”. PSD and PSB keep their format, while other files save as PSD. Copies follow Photoshop’s compatibility preference; “Ask” does not add a composite during automatic processing. Enable overwrite only to replace the current file.",
     helpAria: "About optimization options",
     closeAria: "Close",
     languageAria: "Switch interface language",
@@ -52,6 +65,8 @@ const STRINGS = {
       `Size: ${before} → ${after} · ${delta}${percent ? ` (${percent})` : ""}`,
     sizeAfterOnly: (after) => `Size after optimization: ${after}`,
     sizeUnavailable: "File size change unavailable",
+    sizeDecreaseNote: "File size reduced.",
+    sizeIncreaseNote: "Increase may come from PSD rewriting, a compatibility preview, or the minimal XMP container.",
     errorCount: (count) => `Errors ${count}`,
     warningCount: (count) => `Warnings ${count}`,
     nothingToOptimize: "Nothing to optimize",
@@ -82,7 +97,33 @@ const STRINGS = {
     savedAs: (name) => `Saved as ${name}`,
     overwritten: "Current document overwritten",
     optimizationFailed: "Optimization Failed",
-    copyPathConflict: "The optimized copy must use a different path from the original file"
+    copyPathConflict: "The optimized copy must use a different path from the original file",
+    versionLabel: (version) => `PSD Optimizer · v${version}`,
+    versionAria: (version) => `Check for updates. Installed version ${version}`,
+    updateCheckingTitle: "Check for Updates",
+    updateCheckingMessage: "Checking GitHub for the latest version…",
+    updateLatestTitle: "You're Up to Date",
+    updateLatestMessage: (version) => `PSD Optimizer ${version} is the latest version.`,
+    updateAvailableTitle: "New Version Available",
+    updateAvailableMessage: (version) => `PSD Optimizer ${version} is available on GitHub.`,
+    updateNewerTitle: "Newer Build Installed",
+    updateNewerMessage: "This installed build is newer than the latest public release.",
+    updateErrorTitle: "Update Check Failed",
+    updateNetworkError: "Unable to reach GitHub. Check your connection and try again.",
+    updateTimeoutError: "GitHub did not respond in time. Please try again.",
+    updateRateLimitError: "GitHub is temporarily limiting update checks. Try again later.",
+    updateNoReleaseError: "No published release information is currently available.",
+    updateServiceError: "GitHub is temporarily unavailable. Please try again later.",
+    updateInvalidError: "The version information returned by GitHub could not be verified.",
+    updateBrowserError: "The GitHub download page could not be opened.",
+    updateMeta: (installed, latest) => `Installed v${installed} · Latest v${latest}`,
+    updateInstalledMeta: (installed) => `Installed v${installed}`,
+    updateCancel: "Cancel",
+    updateClose: "Close",
+    updateRetry: "Retry",
+    updateLater: "Later",
+    updateDownload: "Download",
+    updateConsent: "Open the PSD Optimizer release page on GitHub."
   },
   zh: {
     panelTitle: "优化选项",
@@ -100,7 +141,7 @@ const STRINGS = {
     helpMetadata: "删除文档元数据",
     helpEmptyLayers: "删除空白图层",
     helpLayerStyles: "删除已关闭的图层样式",
-    helpNote: "关闭覆盖时生成“原文件名_fix”副本，同名副本顺延为“_fix_2”。PSD 和 PSB 保留原格式，其他文件另存为 PSD。仅在需要替换当前文件时开启覆盖。",
+    helpNote: "关闭覆盖时生成“原文件名_fix”副本，同名副本顺延为“_fix_2”。PSD 和 PSB 保留原格式，其他文件另存为 PSD。副本遵循 Photoshop 兼容性设置；自动处理时“询问”不会额外写入合成图。仅在需要替换当前文件时开启覆盖。",
     helpAria: "查看优化选项说明",
     closeAria: "关闭",
     languageAria: "切换界面语言",
@@ -116,6 +157,8 @@ const STRINGS = {
       `体积：${before} → ${after} · ${delta}${percent ? `（${percent}）` : ""}`,
     sizeAfterOnly: (after) => `优化后体积：${after}`,
     sizeUnavailable: "无法读取文件体积变化",
+    sizeDecreaseNote: "文件体积已减小。",
+    sizeIncreaseNote: "增加可能来自 PSD 重写、兼容预览或最小 XMP 容器。",
     errorCount: (count) => `错误 ${count}`,
     warningCount: (count) => `提示 ${count}`,
     nothingToOptimize: "未发现可优化内容",
@@ -146,7 +189,33 @@ const STRINGS = {
     savedAs: (name) => `已保存为 ${name}`,
     overwritten: "已覆盖当前文档",
     optimizationFailed: "优化失败",
-    copyPathConflict: "优化副本必须使用与原文件不同的保存路径"
+    copyPathConflict: "优化副本必须使用与原文件不同的保存路径",
+    versionLabel: (version) => `PSD Optimizer · v${version}`,
+    versionAria: (version) => `检查更新，当前安装版本 ${version}`,
+    updateCheckingTitle: "检查更新",
+    updateCheckingMessage: "正在连接 GitHub 检查最新版本…",
+    updateLatestTitle: "已是最新版本",
+    updateLatestMessage: (version) => `PSD Optimizer ${version} 已是最新版本。`,
+    updateAvailableTitle: "发现新版本",
+    updateAvailableMessage: (version) => `PSD Optimizer ${version} 已发布到 GitHub。`,
+    updateNewerTitle: "当前版本更新",
+    updateNewerMessage: "当前安装版本高于 GitHub 上的最新公开版本。",
+    updateErrorTitle: "检查更新失败",
+    updateNetworkError: "无法连接 GitHub，请检查网络后重试。",
+    updateTimeoutError: "GitHub 响应超时，请稍后重试。",
+    updateRateLimitError: "GitHub 暂时限制了检查请求，请稍后再试。",
+    updateNoReleaseError: "暂时没有找到可用的正式版本信息。",
+    updateServiceError: "GitHub 服务暂时不可用，请稍后重试。",
+    updateInvalidError: "无法验证 GitHub 返回的版本信息。",
+    updateBrowserError: "无法打开 GitHub 下载页面。",
+    updateMeta: (installed, latest) => `已安装 v${installed} · 最新 v${latest}`,
+    updateInstalledMeta: (installed) => `已安装 v${installed}`,
+    updateCancel: "取消",
+    updateClose: "关闭",
+    updateRetry: "重试",
+    updateLater: "稍后",
+    updateDownload: "前往下载",
+    updateConsent: "在浏览器中打开 PSD Optimizer 的 GitHub 发布页面。"
   }
 };
 
@@ -155,6 +224,17 @@ let currentLanguage = "en";
 let statusRenderer = null;
 let panelVisible = false;
 let uxpCommandListenerAttached = false;
+let updateKeyListenerAttached = false;
+let updateDialogOpen = false;
+let updateState = {
+  kind: "idle",
+  latestVersion: null,
+  errorCode: null
+};
+let updateRequestController = null;
+let updateRequestId = 0;
+let updateCache = null;
+let updateLastFocused = null;
 try {
   const storedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
   if (storedLanguage === "zh" || storedLanguage === "en") {
@@ -167,6 +247,381 @@ try {
 function t(key, ...args) {
   const value = STRINGS[currentLanguage][key];
   return typeof value === "function" ? value(...args) : value;
+}
+
+function parseStableVersion(value) {
+  const match = String(value || "")
+    .trim()
+    .match(/^v?(\d+)\.(\d+)\.(\d+)$/i);
+  if (!match) return null;
+  const parts = match.slice(1).map((item) => Number.parseInt(item, 10));
+  if (parts.some((item) => !Number.isSafeInteger(item))) return null;
+  return {
+    text: parts.join("."),
+    parts
+  };
+}
+
+function getInstalledVersion() {
+  const parsed = parseStableVersion(versions && versions.plugin);
+  return parsed ? parsed.text : "";
+}
+
+function compareVersions(first, second) {
+  for (let index = 0; index < 3; index += 1) {
+    if (first.parts[index] > second.parts[index]) return 1;
+    if (first.parts[index] < second.parts[index]) return -1;
+  }
+  return 0;
+}
+
+function createUpdateError(code) {
+  const error = new Error(code);
+  error.updateCode = code;
+  return error;
+}
+
+function updateErrorMessageKey(code) {
+  const keys = {
+    network: "updateNetworkError",
+    timeout: "updateTimeoutError",
+    rateLimited: "updateRateLimitError",
+    noRelease: "updateNoReleaseError",
+    service: "updateServiceError",
+    invalid: "updateInvalidError",
+    browser: "updateBrowserError"
+  };
+  return keys[code] || keys.network;
+}
+
+function configureUpdateAction(element, label, visible) {
+  element.textContent = label;
+  element.classList.toggle("is-hidden", !visible);
+  element.setAttribute("aria-hidden", String(!visible));
+  element.setAttribute("tabindex", visible ? "0" : "-1");
+}
+
+function renderVersionControl() {
+  const installedVersion = getInstalledVersion();
+  const control = document.getElementById("versionCheckButton");
+  control.textContent = t("versionLabel", installedVersion || "—");
+  control.setAttribute(
+    "aria-label",
+    t("versionAria", installedVersion || "unknown")
+  );
+}
+
+function renderUpdateDialog() {
+  const dialog = document.getElementById("updateDialog");
+  const title = document.getElementById("updateTitle");
+  const message = document.getElementById("updateMessage");
+  const meta = document.getElementById("updateMeta");
+  const primary = document.getElementById("updatePrimaryButton");
+  const secondary = document.getElementById("updateSecondaryButton");
+  const installedVersion = getInstalledVersion();
+  const latestVersion = updateState.latestVersion;
+
+  dialog.dataset.state = updateState.kind;
+  switch (updateState.kind) {
+    case "upToDate":
+      title.textContent = t("updateLatestTitle");
+      message.textContent = t("updateLatestMessage", latestVersion);
+      meta.textContent = t("updateMeta", installedVersion, latestVersion);
+      configureUpdateAction(primary, t("updateClose"), true);
+      configureUpdateAction(secondary, "", false);
+      break;
+    case "available":
+      title.textContent = t("updateAvailableTitle");
+      message.textContent = t("updateAvailableMessage", latestVersion);
+      meta.textContent = t("updateMeta", installedVersion, latestVersion);
+      configureUpdateAction(primary, t("updateDownload"), true);
+      configureUpdateAction(secondary, t("updateLater"), true);
+      break;
+    case "newer":
+      title.textContent = t("updateNewerTitle");
+      message.textContent = t("updateNewerMessage");
+      meta.textContent = t("updateMeta", installedVersion, latestVersion);
+      configureUpdateAction(primary, t("updateClose"), true);
+      configureUpdateAction(secondary, "", false);
+      break;
+    case "error":
+      title.textContent = t("updateErrorTitle");
+      message.textContent = t(updateErrorMessageKey(updateState.errorCode));
+      meta.textContent = installedVersion
+        ? t("updateInstalledMeta", installedVersion)
+        : "";
+      configureUpdateAction(primary, t("updateRetry"), true);
+      configureUpdateAction(secondary, t("updateClose"), true);
+      break;
+    case "checking":
+    default:
+      title.textContent = t("updateCheckingTitle");
+      message.textContent = t("updateCheckingMessage");
+      meta.textContent = installedVersion
+        ? t("updateInstalledMeta", installedVersion)
+        : "";
+      configureUpdateAction(primary, t("updateCancel"), true);
+      configureUpdateAction(secondary, "", false);
+      break;
+  }
+}
+
+function setUpdateState(kind, details = {}) {
+  updateState = {
+    kind,
+    latestVersion: details.latestVersion || null,
+    errorCode: details.errorCode || null
+  };
+  renderUpdateDialog();
+}
+
+function focusUpdatePrimaryAction() {
+  const primary = document.getElementById("updatePrimaryButton");
+  if (primary && typeof primary.focus === "function") {
+    primary.focus();
+  }
+}
+
+function openUpdateDialog() {
+  if (busy) return false;
+  const dialog = document.getElementById("updateDialog");
+  if (!updateDialogOpen) {
+    updateLastFocused = document.activeElement
+      || document.getElementById("versionCheckButton");
+  }
+  updateDialogOpen = true;
+  dialog.classList.add("is-open");
+  dialog.setAttribute("aria-hidden", "false");
+  renderUpdateDialog();
+  focusUpdatePrimaryAction();
+  return true;
+}
+
+function cancelUpdateRequest() {
+  updateRequestId += 1;
+  const controller = updateRequestController;
+  updateRequestController = null;
+  if (controller) {
+    try {
+      controller.abort();
+    } catch (_) {
+      // The request has already completed.
+    }
+  }
+}
+
+function closeUpdateDialog(options = {}) {
+  const restoreFocus = options.restoreFocus !== false;
+  const dialog = document.getElementById("updateDialog");
+  const wasOpen = updateDialogOpen;
+  cancelUpdateRequest();
+  updateDialogOpen = false;
+  dialog.classList.remove("is-open");
+  dialog.setAttribute("aria-hidden", "true");
+
+  if (
+    wasOpen
+    && restoreFocus
+    && updateLastFocused
+    && typeof updateLastFocused.focus === "function"
+  ) {
+    updateLastFocused.focus();
+  }
+  updateLastFocused = null;
+}
+
+function updateFocusableActions() {
+  const actions = [
+    document.getElementById("updatePrimaryButton"),
+    document.getElementById("updateSecondaryButton")
+  ];
+  return actions.filter((element) => !element.classList.contains("is-hidden"));
+}
+
+function handleUpdateKeydown(event) {
+  if (!updateDialogOpen) return;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeUpdateDialog();
+    return;
+  }
+  if (event.key !== "Tab") return;
+
+  const actions = updateFocusableActions();
+  if (!actions.length) return;
+  const first = actions[0];
+  const last = actions[actions.length - 1];
+  if (!actions.includes(document.activeElement)) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  } else if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function attachUpdateKeyListener() {
+  if (updateKeyListenerAttached) return;
+  document.addEventListener("keydown", handleUpdateKeydown);
+  updateKeyListenerAttached = true;
+}
+
+function detachUpdateKeyListener() {
+  if (!updateKeyListenerAttached) return;
+  document.removeEventListener("keydown", handleUpdateKeydown);
+  updateKeyListenerAttached = false;
+}
+
+function responseErrorCode(status) {
+  if (status === 403 || status === 429) return "rateLimited";
+  if (status === 404) return "noRelease";
+  if (status >= 500) return "service";
+  return "network";
+}
+
+async function requestLatestVersion(signal) {
+  const response = await fetch(UPDATE_API_URL, {
+    method: "GET",
+    credentials: "omit",
+    headers: {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2026-03-10"
+    },
+    signal
+  });
+
+  if (!response || !response.ok) {
+    throw createUpdateError(responseErrorCode(response ? response.status : 0));
+  }
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (_) {
+    throw createUpdateError("invalid");
+  }
+
+  const latestVersion = parseStableVersion(payload && payload.tag_name);
+  if (!latestVersion) throw createUpdateError("invalid");
+  return latestVersion;
+}
+
+function applyLatestVersion(latestVersion) {
+  const installedVersion = parseStableVersion(getInstalledVersion());
+  if (!installedVersion) {
+    setUpdateState("error", { errorCode: "invalid" });
+    return;
+  }
+
+  const comparison = compareVersions(installedVersion, latestVersion);
+  const details = { latestVersion: latestVersion.text };
+  if (comparison < 0) {
+    setUpdateState("available", details);
+  } else if (comparison > 0) {
+    setUpdateState("newer", details);
+  } else {
+    setUpdateState("upToDate", details);
+  }
+}
+
+async function checkForUpdates(options = {}) {
+  if (busy) return false;
+  if (!openUpdateDialog()) return false;
+  if (updateRequestController) return false;
+
+  const force = options.force === true;
+  const timeoutMs = Number.isFinite(options.timeoutMs)
+    ? Math.max(1, options.timeoutMs)
+    : UPDATE_TIMEOUT_MS;
+  if (
+    !force
+    && updateCache
+    && Date.now() - updateCache.checkedAt < UPDATE_CACHE_MS
+  ) {
+    applyLatestVersion(updateCache.latestVersion);
+    focusUpdatePrimaryAction();
+    return true;
+  }
+
+  setUpdateState("checking");
+  focusUpdatePrimaryAction();
+  const controller = new AbortController();
+  const requestId = updateRequestId + 1;
+  updateRequestId = requestId;
+  updateRequestController = controller;
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    const latestVersion = await requestLatestVersion(controller.signal);
+    if (requestId !== updateRequestId || !updateDialogOpen) return false;
+    updateCache = {
+      checkedAt: Date.now(),
+      latestVersion
+    };
+    applyLatestVersion(latestVersion);
+    focusUpdatePrimaryAction();
+    return true;
+  } catch (error) {
+    if (requestId !== updateRequestId || !updateDialogOpen) return false;
+    const errorCode = timedOut
+      ? "timeout"
+      : error && error.updateCode
+        ? error.updateCode
+        : error && error.name === "AbortError"
+          ? "network"
+          : "network";
+    setUpdateState("error", { errorCode });
+    focusUpdatePrimaryAction();
+    return false;
+  } finally {
+    clearTimeout(timeout);
+    if (updateRequestController === controller) {
+      updateRequestController = null;
+    }
+  }
+}
+
+async function openUpdateDownloadPage() {
+  try {
+    const result = await shell.openExternal(
+      UPDATE_DOWNLOAD_URL,
+      t("updateConsent")
+    );
+    if (result) {
+      setUpdateState("error", { errorCode: "browser" });
+      focusUpdatePrimaryAction();
+      return false;
+    }
+    closeUpdateDialog();
+    return true;
+  } catch (_) {
+    setUpdateState("error", { errorCode: "browser" });
+    focusUpdatePrimaryAction();
+    return false;
+  }
+}
+
+async function handleUpdatePrimaryAction() {
+  if (updateState.kind === "checking") {
+    closeUpdateDialog();
+  } else if (updateState.kind === "available") {
+    await openUpdateDownloadPage();
+  } else if (updateState.kind === "error") {
+    if (updateState.errorCode === "browser") {
+      await openUpdateDownloadPage();
+    } else {
+      await checkForUpdates({ force: true });
+    }
+  } else {
+    closeUpdateDialog();
+  }
 }
 
 function setPanelVisibility(value) {
@@ -202,13 +657,16 @@ function detachUxpCommandListener() {
 
 function initializePanelLifecycle() {
   attachUxpCommandListener();
+  attachUpdateKeyListener();
   entrypoints.setup({
     plugin: {
       create() {
         attachUxpCommandListener();
+        attachUpdateKeyListener();
       },
       destroy() {
         detachUxpCommandListener();
+        detachUpdateKeyListener();
         setPanelVisibility(false);
       }
     },
@@ -216,6 +674,7 @@ function initializePanelLifecycle() {
       [PANEL_ENTRYPOINT_ID]: {
         create() {
           attachUxpCommandListener();
+          attachUpdateKeyListener();
         },
         show() {
           setPanelVisibility(true);
@@ -265,6 +724,13 @@ function setBusy(value) {
     control.setAttribute("aria-disabled", String(value));
     control.setAttribute("tabindex", value ? "-1" : "0");
   });
+  const versionControl = document.getElementById("versionCheckButton");
+  versionControl.classList.toggle("is-disabled", value);
+  versionControl.setAttribute("aria-disabled", String(value));
+  versionControl.setAttribute("tabindex", value ? "-1" : "0");
+  if (value && updateDialogOpen) {
+    closeUpdateDialog({ restoreFocus: false });
+  }
 }
 
 function setStatus(state, title, detail, sizeDetail = "") {
@@ -348,13 +814,20 @@ function formatSizeChange(stats) {
   const percent = before > 0 && difference !== 0
     ? `${difference < 0 ? "−" : "+"}${Math.abs(difference / before * 100).toFixed(1)}%`
     : "";
-  return t(
+  const summary = t(
     "sizeChange",
     formatBytes(before),
     formatBytes(after),
     delta,
     percent
   );
+  if (difference < 0) {
+    return `${summary} · ${t("sizeDecreaseNote")}`;
+  }
+  if (difference > 0) {
+    return `${summary} · ${t("sizeIncreaseNote")}`;
+  }
+  return summary;
 }
 
 function summarize(stats) {
@@ -520,11 +993,30 @@ async function makeCopyEntry(doc, sourceEntry = null) {
 
 async function saveCopy(doc, entry) {
   const nativePath = entry && (entry.nativePath || entry.name);
-  const saveOptions = { maximizeCompatibility: true };
+  const saveOptions = {
+    maximizeCompatibility: shouldMaximizeCompatibilityForCopy()
+  };
   if (copyExtension(nativePath) === ".psb") {
     await doc.saveAs.psb(entry, saveOptions, true);
   } else {
     await doc.saveAs.psd(entry, saveOptions, true);
+  }
+}
+
+function shouldMaximizeCompatibilityForCopy() {
+  try {
+    const modes = constants && constants.MaximizeCompatibility;
+    const preference = app
+      && app.preferences
+      && app.preferences.fileHandling
+      && app.preferences.fileHandling.maximizeCompatibility;
+    // Automated cleanup cannot pause for Photoshop's "Ask" dialog. Only an
+    // explicit "Always" preference authorizes adding the compatibility image.
+    return Boolean(modes && preference === modes.ALWAYS);
+  } catch (_) {
+    // Avoid silently adding a potentially large composite when the preference
+    // is unavailable in a supported host.
+    return false;
   }
 }
 
@@ -1036,11 +1528,13 @@ OPTION_IDS.forEach((id) => {
 
 function openHelpDialog() {
   const helpDialog = document.getElementById("helpDialog");
+  renderVersionControl();
   helpDialog.classList.add("is-open");
   helpDialog.setAttribute("aria-hidden", "false");
 }
 
 function closeHelpDialog() {
+  closeUpdateDialog({ restoreFocus: false });
   const helpDialog = document.getElementById("helpDialog");
   helpDialog.classList.remove("is-open");
   helpDialog.setAttribute("aria-hidden", "true");
@@ -1094,6 +1588,8 @@ function applyLanguage() {
     // The selected language remains active for this session.
   }
 
+  renderVersionControl();
+  if (updateDialogOpen) renderUpdateDialog();
   updateOptionUI();
   renderLocalizedStatus();
 }
@@ -1122,6 +1618,14 @@ bindControlAction("cleanDocument", () => cleanCurrent("all"));
 bindControlAction("helpButton", openHelpDialog);
 bindControlAction("helpCloseButton", closeHelpDialog);
 bindControlAction("languageToggle", toggleLanguage);
+bindControlAction("versionCheckButton", () => checkForUpdates());
+bindControlAction("updatePrimaryButton", handleUpdatePrimaryAction);
+bindControlAction("updateSecondaryButton", closeUpdateDialog);
+document.getElementById("updateDialog").addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) {
+    closeUpdateDialog();
+  }
+});
 
 initializePanelLifecycle();
 setLocalizedStatus("idle", "readyTitle", "readyDetail");

@@ -18,7 +18,7 @@ import (
 const (
 	pluginID         = "caveman.optimizer.uxp"
 	pluginName       = "PSD Optimizer"
-	pluginVersion    = "1.7.6"
+	pluginVersion    = "1.8.0"
 	hostMinVersion   = "25.0.0"
 	registryPathHint = `$localPlugins\External\` + pluginID
 )

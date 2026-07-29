@@ -105,9 +105,29 @@
           </ul>
           <p id="helpNote" class="help-note">Overwrite off creates a “filename_fix” copy; existing copies advance to “_fix_2”. PSD and PSB keep their format, while other files save as PSD. Enable overwrite only to replace the current file.</p>
           <footer class="help-footer">
-            <span>PSD Optimizer · v1.7.6</span>
+            <span id="versionCheckButton" class="version-check" role="button"
+              tabindex="0" aria-label="Check for updates">
+              PSD Optimizer · v1.8.0
+            </span>
             <span>© 2026 CAVEMAN</span>
           </footer>
+        </div>
+      </section>
+
+      <section id="updateDialog" class="update-overlay" aria-hidden="true">
+        <div class="update-dialog" role="dialog" aria-modal="true"
+          aria-labelledby="updateTitle" aria-describedby="updateMessage">
+          <strong id="updateTitle" class="update-title">Check for Updates</strong>
+          <p id="updateMessage" class="update-message" aria-live="polite">
+            Checking GitHub for the latest version…
+          </p>
+          <p id="updateMeta" class="update-meta"></p>
+          <div class="update-actions">
+            <span id="updatePrimaryButton" class="update-action primary"
+              role="button" tabindex="0">Cancel</span>
+            <span id="updateSecondaryButton" class="update-action secondary is-hidden"
+              role="button" tabindex="-1">Close</span>
+          </div>
         </div>
       </section>
     </main>
