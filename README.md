@@ -1,10 +1,10 @@
 # PSD Optimizer
 
 PSD Optimizer 是一个面向 Adobe Photoshop 25.0+ 的 UXP 清理插件，可在 Apple Silicon 原生模式运行，不需要让 Photoshop 使用 Rosetta。
+尽管现在有很多新的设计工具，但 Photoshop 依然有很多时候很难取代，对 PSD 文件有点洁癖，在图层很多效果多的时候，文件整理就很头大。随着 Photoshop 更新了插件架构，老插件只能通过 Rosetta 兼容模式运行的 Photoshop 才能正常运行，而我不想为了一些小功能就放弃 Photoshop 的原生运行模式。所以我借助 ChatGPT 做了一个专注于 PSD 清理、原生支持新架构的小插件，功能设计上参考了一些老的插件工具，同时只保留了我觉得最重要的三个功能（功能越少，错误越少，也许吧～😂）。
 
-当前版本：**1.7.6**
+<img width="504" height="465" alt="image" src="https://github.com/user-attachments/assets/0c200b07-8d79-4cd1-beb5-503e2825c56d" />
 
-插件 ID：`caveman.optimizer.uxp`
 
 ## 功能
 
@@ -56,20 +56,6 @@ docs/                      安装说明
 go test ./...
 node tests/verify-ui-behavior.cjs
 python3 -m json.tool plugin/manifest.json >/dev/null
-```
-
-## 重新生成折叠栏图标
-
-图标源文件位于：
-
-- `plugin/icons/panel-broom-dark.svg`
-- `plugin/icons/panel-broom-light.svg`
-
-安装依赖并生成 23×23 与 46×46 PNG：
-
-```bash
-npm install
-npm run render:icons
 ```
 
 ## 构建发布文件
