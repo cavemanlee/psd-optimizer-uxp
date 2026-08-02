@@ -3,7 +3,7 @@
   <assemblyIdentity
     type="win32"
     name="CAVEMAN.PSDOptimizer.Setup"
-    version="1.8.2.0"
+    version="1.8.3.0"
     processorArchitecture="amd64"
   />
   <description>PSD Optimizer Setup</description>

@@ -145,7 +145,7 @@ const photoshopApp = {
 };
 const photoshopAction = {};
 const uxpHost = { version: "25.0.0" };
-const uxpVersions = { plugin: "1.8.2" };
+const uxpVersions = { plugin: "1.8.3" };
 const uxpShell = {
   async openExternal(url, developerText) {
     shellOpenCalls.push({ url, developerText });
@@ -244,6 +244,8 @@ const styles = fs.readFileSync(
   path.join(__dirname, "..", "plugin", "styles.css"),
   "utf8"
 );
+const helpSheetStyles = styles.match(/\.help-sheet\s*\{[^}]*\}/)[0];
+const helpNoteStyles = styles.match(/\.help-note\s*\{[^}]*\}/)[0];
 new vm.Script(source, { filename: "index.js" }).runInContext(context);
 
 async function main() {
@@ -264,9 +266,18 @@ async function main() {
   assert.match(styles, /\.option-card\s*\{[\s\S]*?flex:\s*1 1 0/);
   assert.match(styles, /\.option-card:last-child\s*\{[\s\S]*?margin-right:\s*0/);
   assert.match(styles, /\.icon-box\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*58px/);
-  assert.match(styles, /\.help-sheet\s*\{[\s\S]*?width:\s*100%[\s\S]*?min-width:\s*0[\s\S]*?max-width:\s*100%/);
-  assert.match(styles, /\.help-note\s*\{[\s\S]*?width:\s*100%[\s\S]*?min-width:\s*0[\s\S]*?max-width:\s*100%/);
-  assert.match(styles, /\.help-note\s*\{[\s\S]*?overflow-wrap:\s*anywhere[\s\S]*?word-break:\s*break-word[\s\S]*?overflow:\s*hidden/);
+  assert.match(helpSheetStyles, /width:\s*auto/);
+  assert.match(helpSheetStyles, /min-width:\s*0/);
+  assert.match(helpNoteStyles, /align-self:\s*stretch/);
+  assert.match(helpNoteStyles, /width:\s*auto/);
+  assert.match(helpNoteStyles, /min-width:\s*0/);
+  assert.match(helpNoteStyles, /padding:\s*8px 8px 0 0/);
+  assert.match(helpNoteStyles, /white-space:\s*normal/);
+  assert.match(helpNoteStyles, /word-break:\s*normal/);
+  assert.doesNotMatch(helpNoteStyles, /overflow-wrap:\s*anywhere/);
+  assert.doesNotMatch(helpNoteStyles, /word-break:\s*break-all/);
+  assert.doesNotMatch(helpNoteStyles, /word-break:\s*break-word/);
+  assert.doesNotMatch(helpNoteStyles, /overflow:\s*hidden/);
   assert.ok(fs.statSync(
     path.join(__dirname, "..", "plugin", "icons", "ui", "more-circle.png")
   ).size > 0);
@@ -373,7 +384,7 @@ async function main() {
   );
   assert.strictEqual(
     elements.versionCheckButton.textContent,
-    "PSD Optimizer · v1.8.2"
+    "PSD Optimizer · v1.8.3"
   );
 
   const sizeFormats = JSON.parse(JSON.stringify(new vm.Script(`
@@ -520,7 +531,7 @@ async function main() {
   fetchImplementation = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ tag_name: "1.8.2" })
+    json: async () => ({ tag_name: "1.8.3" })
   });
   await new vm.Script(`checkForUpdates({ force: true })`).runInContext(context);
   assert.strictEqual(

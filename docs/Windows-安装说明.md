@@ -1,6 +1,6 @@
-# PSD Optimizer 1.8.2 — Windows 安装说明
+# PSD Optimizer 1.8.3 — Windows 安装说明
 
-安装文件：`PSD-Optimizer-1.8.2-Windows-x64.exe`
+安装文件：`PSD-Optimizer-1.8.3-Windows-x64.exe`
 
 ## 系统要求
 
@@ -10,7 +10,7 @@
 
 ## 安装
 
-1. 双击 `PSD-Optimizer-1.8.2-Windows-x64.exe`。
+1. 双击 `PSD-Optimizer-1.8.3-Windows-x64.exe`。
 2. 安装器会自动从 Windows 注册表、App Paths 和 Adobe 常见程序目录查找 `Photoshop.exe`，并读取程序文件版本。
 3. 核对检测到的 Photoshop 路径和插件安装位置，然后单击“确定”。
 4. 安装完成后启动 Photoshop，打开：
@@ -43,7 +43,7 @@
 PowerShell 校验命令：
 
 ```powershell
-Get-FileHash .\PSD-Optimizer-1.8.2-Windows-x64.exe -Algorithm SHA256
+Get-FileHash .\PSD-Optimizer-1.8.3-Windows-x64.exe -Algorithm SHA256
 ```
 
 ## 排查

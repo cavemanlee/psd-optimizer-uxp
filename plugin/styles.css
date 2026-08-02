@@ -426,9 +426,8 @@ button {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: auto;
   min-width: 0;
-  max-width: 100%;
   height: auto;
   min-height: 100%;
   padding: 18px 14px 18px;
@@ -601,20 +600,18 @@ button {
 
 .help-note {
   display: block;
-  width: 100%;
+  align-self: stretch;
+  width: auto;
   min-width: 0;
-  max-width: 100%;
   flex: 0 0 auto;
   margin: 14px 0 16px;
-  padding-top: 8px;
+  padding: 8px 8px 0 0;
   border-top: 1px solid #424242;
   color: var(--muted);
   font-size: 9px;
   line-height: 1.45;
   white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  overflow: hidden;
+  word-break: normal;
 }
 
 .help-footer {
