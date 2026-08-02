@@ -1,6 +1,6 @@
 {
   "name": "psd-optimizer-uxp",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "private": true,
   "license": "SEE LICENSE IN LICENSE",
   "description": "Source and packaging tools for the PSD Optimizer Photoshop UXP plugin.",

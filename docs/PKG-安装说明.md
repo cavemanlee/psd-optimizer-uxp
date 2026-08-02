@@ -1,9 +1,9 @@
-# PSD Optimizer 1.8.1 — macOS PKG 安装说明
+# PSD Optimizer 1.8.2 — macOS PKG 安装说明
 
 ## 安装
 
 1. 退出 Photoshop。
-2. 双击 `PSD-Optimizer-1.8.1-macOS.pkg`。
+2. 双击 `PSD-Optimizer-1.8.2-macOS.pkg`。
 3. 按照 macOS 安装器提示完成安装，并在需要时输入管理员密码。
 4. 重新打开 Photoshop，通过“增效工具 / Plugins”菜单打开 **PSD Optimizer**。
 
@@ -20,7 +20,7 @@
 
 ## 兼容性与校验
 
-- 插件版本：1.8.1
+- 插件版本：1.8.2
 - Photoshop 最低版本：25.0
 - 插件 ID：`caveman.optimizer.uxp`
 - PKG SHA-256：见同目录 `SHA256SUMS.txt`
