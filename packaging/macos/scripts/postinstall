@@ -2,7 +2,7 @@
 set -eu
 
 PLUGIN_ID="caveman.optimizer.uxp"
-PLUGIN_VERSION="1.8.0"
+PLUGIN_VERSION="1.8.1"
 PLUGIN_NAME="PSD Optimizer"
 HOST_MIN_VERSION="25.0.0"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && /bin/pwd)
@@ -55,12 +55,13 @@ fi
 
 if [ ! -f "$PLUGIN_STAGE/manifest.json" ] ||
   ! /usr/bin/grep -q '"id"[[:space:]]*:[[:space:]]*"caveman.optimizer.uxp"' "$PLUGIN_STAGE/manifest.json" ||
-  ! /usr/bin/grep -q '"version"[[:space:]]*:[[:space:]]*"1.8.0"' "$PLUGIN_STAGE/manifest.json" ||
+  ! /usr/bin/grep -q '"version"[[:space:]]*:[[:space:]]*"1.8.1"' "$PLUGIN_STAGE/manifest.json" ||
   [ ! -s "$PLUGIN_STAGE/index.html" ] ||
   [ ! -s "$PLUGIN_STAGE/index.js" ] ||
   [ ! -s "$PLUGIN_STAGE/styles.css" ] ||
   [ ! -s "$PLUGIN_STAGE/icons/ui/check-white.png" ] ||
-  [ ! -s "$PLUGIN_STAGE/icons/ui/help-gray.png" ]; then
+  [ ! -s "$PLUGIN_STAGE/icons/ui/more-circle.png" ] ||
+  [ ! -s "$PLUGIN_STAGE/icons/ui/close.png" ]; then
   /bin/rm -rf -- "$PLUGIN_STAGE"
   echo "PSD Optimizer: staged plugin verification failed." >&2
   exit 1

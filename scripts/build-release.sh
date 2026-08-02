@@ -13,6 +13,18 @@ trap 'rm -rf -- "$build_stage"' EXIT INT TERM
 
 mkdir -p "$dist_dir"
 
+# Keep only the current build in dist/. Historical releases remain available
+# through GitHub until they are intentionally retired.
+for old_artifact in \
+  "$dist_dir"/PSD-Optimizer-*-macOS.pkg \
+  "$dist_dir"/PSD-Optimizer-*-Windows-x64.exe \
+  "$dist_dir"/PSD-Optimizer-*-source.zip; do
+  if [[ -f "$old_artifact" ]]; then
+    rm -f -- "$old_artifact"
+  fi
+done
+rm -f -- "$dist_dir/SHA256SUMS.txt"
+
 node_bin="${NODE_BIN:-$(command -v node || true)}"
 if [[ -z "$node_bin" ]]; then
   printf 'Node.js was not found. Install Node.js or set NODE_BIN.\n' >&2
