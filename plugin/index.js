@@ -34,7 +34,7 @@ const OPTION_IDS = [
 const LANGUAGE_STORAGE_KEY = "psdOptimizerLanguage";
 const STRINGS = {
   en: {
-    panelTitle: "Optimization Options",
+    panelTitle: "PSD Optimizer",
     metadataName: "Metadata",
     emptyLayersName: "Empty Layers",
     layerStylesName: "Layer Styles",
@@ -50,7 +50,7 @@ const STRINGS = {
     helpEmptyLayers: "Remove empty layers",
     helpLayerStyles: "Remove disabled layer styles",
     helpNote: "Overwrite off creates a “filename_fix” copy; existing copies advance to “_fix_2”. PSD and PSB keep their format, while other files save as PSD. Copies follow Photoshop’s compatibility preference; “Ask” does not add a composite during automatic processing. Enable overwrite only to replace the current file.",
-    helpAria: "About optimization options",
+    helpAria: "Open settings and information",
     closeAria: "Close",
     languageAria: "Switch interface language",
     optionsAria: "Optimization options",
@@ -126,7 +126,7 @@ const STRINGS = {
     updateConsent: "Open the PSD Optimizer release page on GitHub."
   },
   zh: {
-    panelTitle: "优化选项",
+    panelTitle: "PSD Optimizer",
     metadataName: "元数据",
     emptyLayersName: "空白图层",
     layerStylesName: "图层样式",
@@ -142,7 +142,7 @@ const STRINGS = {
     helpEmptyLayers: "删除空白图层",
     helpLayerStyles: "删除已关闭的图层样式",
     helpNote: "关闭覆盖时生成“原文件名_fix”副本，同名副本顺延为“_fix_2”。PSD 和 PSB 保留原格式，其他文件另存为 PSD。副本遵循 Photoshop 兼容性设置；自动处理时“询问”不会额外写入合成图。仅在需要替换当前文件时开启覆盖。",
-    helpAria: "查看优化选项说明",
+    helpAria: "打开设置和说明",
     closeAria: "关闭",
     languageAria: "切换界面语言",
     optionsAria: "优化选项",
@@ -1567,6 +1567,7 @@ function applyLanguage() {
   document.querySelector(".save-row").setAttribute("aria-label", t("saveAria"));
   document.querySelector(".actions").setAttribute("aria-label", t("actionsAria"));
   document.getElementById("helpButton").setAttribute("aria-label", t("helpAria"));
+  document.getElementById("helpButton").setAttribute("title", t("helpAria"));
   document.getElementById("helpCloseButton").setAttribute("aria-label", t("closeAria"));
   document.getElementById("languageToggle").setAttribute("aria-label", t("languageAria"));
   document.getElementById("languageToggle").setAttribute(

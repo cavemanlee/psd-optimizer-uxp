@@ -236,10 +236,48 @@ const manifest = JSON.parse(fs.readFileSync(
   path.join(__dirname, "..", "plugin", "manifest.json"),
   "utf8"
 ));
+const html = fs.readFileSync(
+  path.join(__dirname, "..", "plugin", "index.html"),
+  "utf8"
+);
+const styles = fs.readFileSync(
+  path.join(__dirname, "..", "plugin", "styles.css"),
+  "utf8"
+);
 new vm.Script(source, { filename: "index.js" }).runInContext(context);
 
 async function main() {
   assert.strictEqual(manifest.version, uxpVersions.plugin);
+  const panelManifest = manifest.entrypoints.find(
+    (entrypoint) => entrypoint.id === "psdCleanerPanel"
+  );
+  assert.ok(panelManifest);
+  assert.strictEqual(panelManifest.minimumSize.width, 320);
+  assert.strictEqual(panelManifest.maximumSize.width, 1000);
+  assert.strictEqual(panelManifest.preferredDockedSize.width, 320);
+  assert.strictEqual(panelManifest.preferredFloatingSize.width, 320);
+  assert.match(html, /class="brand"/);
+  assert.match(html, /icons\/ui\/more-circle\.png/);
+  assert.match(html, /icons\/ui\/close\.png/);
+  assert.match(styles, /--accent:\s*#22aff2/);
+  assert.match(styles, /\.panel-header\s*\{[\s\S]*?height:\s*44px/);
+  assert.match(styles, /\.option-card\s*\{[\s\S]*?flex:\s*1 1 0/);
+  assert.match(styles, /\.option-card:last-child\s*\{[\s\S]*?margin-right:\s*0/);
+  assert.match(styles, /\.icon-box\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*58px/);
+  assert.ok(fs.statSync(
+    path.join(__dirname, "..", "plugin", "icons", "ui", "more-circle.png")
+  ).size > 0);
+  assert.ok(fs.statSync(
+    path.join(__dirname, "..", "plugin", "icons", "ui", "close.png")
+  ).size > 0);
+  assert.strictEqual(
+    new vm.Script("STRINGS.en.panelTitle").runInContext(context),
+    "PSD Optimizer"
+  );
+  assert.strictEqual(
+    new vm.Script("STRINGS.zh.panelTitle").runInContext(context),
+    "PSD Optimizer"
+  );
   assert.deepStrictEqual(
     manifest.requiredPermissions.network.domains,
     ["https://api.github.com"]

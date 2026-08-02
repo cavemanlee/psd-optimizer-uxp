@@ -47,19 +47,19 @@
         "default": "PSD Optimizer"
       },
       "minimumSize": {
-        "width": 200,
+        "width": 320,
         "height": 320
       },
       "maximumSize": {
-        "width": 800,
+        "width": 1000,
         "height": 1200
       },
       "preferredDockedSize": {
-        "width": 230,
+        "width": 320,
         "height": 360
       },
       "preferredFloatingSize": {
-        "width": 230,
+        "width": 320,
         "height": 360
       },
       "icons": [

@@ -23,10 +23,26 @@ async function renderTheme(theme) {
   }
 }
 
+async function renderUiIcons() {
+  const targets = [
+    ["source/generated-ui/more-circle.svg", "more-circle.png"],
+    ["source/remix/close-line.svg", "close.png"]
+  ];
+
+  for (const [sourcePath, outputName] of targets) {
+    const source = fs.readFileSync(path.join(iconRoot, sourcePath));
+    await sharp(source, { density: 192 })
+      .resize(64, 64, { fit: "fill" })
+      .png({ compressionLevel: 9 })
+      .toFile(path.join(iconRoot, "ui", outputName));
+  }
+}
+
 async function main() {
   await renderTheme("dark");
   await renderTheme("light");
-  process.stdout.write("Panel broom icons rendered successfully.\n");
+  await renderUiIcons();
+  process.stdout.write("Panel and UI icons rendered successfully.\n");
 }
 
 main().catch((error) => {
