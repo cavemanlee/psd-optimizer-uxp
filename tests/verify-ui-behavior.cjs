@@ -264,6 +264,9 @@ async function main() {
   assert.match(styles, /\.option-card\s*\{[\s\S]*?flex:\s*1 1 0/);
   assert.match(styles, /\.option-card:last-child\s*\{[\s\S]*?margin-right:\s*0/);
   assert.match(styles, /\.icon-box\s*\{[\s\S]*?width:\s*100%[\s\S]*?height:\s*58px/);
+  assert.match(styles, /\.help-sheet\s*\{[\s\S]*?width:\s*100%[\s\S]*?min-width:\s*0[\s\S]*?max-width:\s*100%/);
+  assert.match(styles, /\.help-note\s*\{[\s\S]*?width:\s*100%[\s\S]*?min-width:\s*0[\s\S]*?max-width:\s*100%/);
+  assert.match(styles, /\.help-note\s*\{[\s\S]*?overflow-wrap:\s*anywhere[\s\S]*?word-break:\s*break-word[\s\S]*?overflow:\s*hidden/);
   assert.ok(fs.statSync(
     path.join(__dirname, "..", "plugin", "icons", "ui", "more-circle.png")
   ).size > 0);
