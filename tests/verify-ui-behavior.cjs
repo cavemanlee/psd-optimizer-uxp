@@ -145,7 +145,7 @@ const photoshopApp = {
 };
 const photoshopAction = {};
 const uxpHost = { version: "25.0.0" };
-const uxpVersions = { plugin: "1.8.0" };
+const uxpVersions = { plugin: "1.8.1" };
 const uxpShell = {
   async openExternal(url, developerText) {
     shellOpenCalls.push({ url, developerText });
@@ -353,8 +353,8 @@ async function main() {
         return {
           text: parsed.text,
           comparison: compareVersions(
-            parseStableVersion("1.8.1"),
-            parseStableVersion("1.8.0")
+            parseStableVersion("1.8.2"),
+            parseStableVersion("1.8.1")
           ),
           invalid: parseStableVersion("1.8") === null
         };
@@ -370,7 +370,7 @@ async function main() {
   );
   assert.strictEqual(
     elements.versionCheckButton.textContent,
-    "PSD Optimizer · v1.8.0"
+    "PSD Optimizer · v1.8.1"
   );
 
   const sizeFormats = JSON.parse(JSON.stringify(new vm.Script(`
@@ -517,7 +517,7 @@ async function main() {
   fetchImplementation = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ tag_name: "1.8.0" })
+    json: async () => ({ tag_name: "1.8.1" })
   });
   await new vm.Script(`checkForUpdates({ force: true })`).runInContext(context);
   assert.strictEqual(
@@ -529,7 +529,7 @@ async function main() {
   fetchImplementation = async () => ({
     ok: true,
     status: 200,
-    json: async () => ({ tag_name: "v1.7.9" })
+    json: async () => ({ tag_name: "v1.8.0" })
   });
   await new vm.Script(`checkForUpdates({ force: true })`).runInContext(context);
   assert.strictEqual(
